@@ -1,60 +1,39 @@
-import pygame
-import pygame_gui
-from game import game_main
+import sys
+from random import randint
+
+from PyQt6 import uic
+from PyQt6.QtGui import QColor, QPainter
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QMainWindow
 
 
-def main():
-    FPS = 60
-    WINDOW_SIZE = (400, 200)
-    pygame.init()
+class MyWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('UI.ui', self)
+        self.do_paint = False
+        self.pushButton.clicked.connect(self.creation)
 
-    pygame.display.set_caption("Меню")
-    window_surface = pygame.display.set_mode(WINDOW_SIZE)
+    def paintEvent(self, event):
+        if self.do_paint:
+            qp = QPainter()
+            qp.begin(self)
+            self.draw_ellipse(qp)
+            qp.end()
 
-    background = pygame.Surface(WINDOW_SIZE)
-    background.fill((0, 0, 0))
+    def draw_ellipse(self, qp):
+        qp.setBrush(QColor(255, 255, 0))
+        r = randint(0, 250)
+        qp.drawEllipse(randint(0, 399 - r), randint(0, 561 - r), r, r)
+        self.do_paint = False
 
-    manager = pygame_gui.UIManager(WINDOW_SIZE)
-
-    play = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((150, 3), (100, 50)),
-        text="Играть",
-        manager=manager
-    )
-
-    quit = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((150, 75), (100, 50)),
-        text="Выйти",
-        manager=manager
-    )
-
-    clock = pygame.time.Clock()
-    run = True
-
-    while run:
-        time_delta = clock.tick(FPS) / 1000.0
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-
-            if event.type == pygame.USEREVENT:
-                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == play:
-                        game_main()
-                        run = False
-                        main()
-                    elif event.ui_element == quit:
-                        run = False
-
-            manager.process_events(event)
-
-        manager.update(time_delta)
-        window_surface.blit(background, (0, 0))
-        manager.draw_ui(window_surface)
-
-        pygame.display.update()
+    def creation(self):
+        self.do_paint = True
+        self.repaint()
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = MyWidget()
+    ex.show()
+    sys.exit(app.exec())
